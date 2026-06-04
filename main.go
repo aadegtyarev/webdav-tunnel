@@ -95,7 +95,7 @@ func main() {
 		requireWebDAVFlags(*webdavURL, *login, *password)
 		dav := dialWebDAV(*webdavURL, *login, *password, *timeout)
 		log.Printf("server: ════════════════════════════════════════════════════")
-		log.Printf("server: client -uri  %s", tunnel.ClientURI(*webdavURL, *login, *password))
+		log.Printf("server: client -uri  %s", tunnel.ClientURIMasked(*webdavURL, *login, *password))
 		log.Printf("server: ════════════════════════════════════════════════════")
 		tunnel.RunServer(dav, parseProxy(*proxyStr))
 

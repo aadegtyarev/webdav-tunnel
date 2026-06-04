@@ -57,7 +57,11 @@ func NewWebDAV(baseURL, login, password string, timeout time.Duration) *WebDAV {
 		ResponseHeaderTimeout: 20 * time.Second,
 		MaxIdleConnsPerHost:   32,
 		MaxConnsPerHost:       32,
-		IdleConnTimeout:       10 * time.Second,
+		// Keep pooled connections warm across browsing think-time gaps so each
+		// new request reuses an established TLS session instead of paying a fresh
+		// ~0.4s handshake (measured against Yandex.Disk). Capped below typical
+		// server-side keep-alive windows to limit stale-reuse retries.
+		IdleConnTimeout:       60 * time.Second,
 	}
 	return &WebDAV{
 		baseURL:  strings.TrimRight(baseURL, "/"),

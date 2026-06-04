@@ -11,7 +11,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"os"
+	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -22,6 +26,47 @@ var (
 	running  atomic.Bool
 	cancelFn context.CancelFunc
 )
+
+// ── log capture ─────────────────────────────────────────────────────────────
+// The tunnel logs WebDAV errors, 429 rate-limit backoffs, dial failures, etc.
+// via the standard logger. We tee those lines into a bounded ring buffer so the
+// Android UI can surface them (otherwise they only reach logcat).
+
+const maxLogLines = 200
+
+var (
+	logMu  sync.Mutex
+	logBuf []string
+)
+
+type logSink struct{}
+
+func (logSink) Write(p []byte) (int, error) {
+	logMu.Lock()
+	for _, line := range strings.Split(strings.TrimRight(string(p), "\n"), "\n") {
+		if line == "" {
+			continue
+		}
+		logBuf = append(logBuf, line)
+		if len(logBuf) > maxLogLines {
+			logBuf = logBuf[len(logBuf)-maxLogLines:]
+		}
+	}
+	logMu.Unlock()
+	return len(p), nil
+}
+
+func init() {
+	log.SetOutput(io.MultiWriter(os.Stderr, logSink{}))
+}
+
+// RecentLogs returns recent tunnel log lines (oldest first), newline-joined,
+// for display in the UI. Includes WebDAV errors and 429 rate-limit notices.
+func RecentLogs() string {
+	logMu.Lock()
+	defer logMu.Unlock()
+	return strings.Join(logBuf, "\n")
+}
 
 // Start starts the WebDAV SOCKS5 tunnel client.
 //
@@ -95,4 +140,10 @@ func SetReadAheadMin(n int) { tunnel.MinReadAheadWindow = n }
 
 // SetReadAheadMax sets the maximum concurrent prefetch GETs (default 8).
 func SetReadAheadMax(n int) { tunnel.MaxReadAheadWindow = n }
+
+// SetDialTimeoutSec sets the target connection establishment timeout in seconds (default 15).
+func SetDialTimeoutSec(s int) { tunnel.DialTimeout = time.Duration(s) * time.Second }
+
+// SetIdleTimeoutSec sets the per-stream idle timeout in seconds (default 90).
+func SetIdleTimeoutSec(s int) { tunnel.IdleTimeout = time.Duration(s) * time.Second }
 

@@ -16,17 +16,18 @@ import (
 
 var (
 	PollInterval       = 500 * time.Millisecond // maximum poll backoff when idle
-	MinPollInterval    = 200 * time.Millisecond // starting poll interval for adaptive backoff
+	MinPollInterval    = 100 * time.Millisecond // starting poll interval for adaptive backoff
 	CoalesceDelay      = 10 * time.Millisecond  // write coalescing window
 	ChunkDataSize      = 128*1024 - 1           // chunk size chosen to avoid cloud timeouts
 	MaxConcurrentPuts  = 8                      // parallel upload limit
 	MinReadAheadWindow = 3                      // minimum concurrent GETs (idle baseline)
 	MaxReadAheadWindow = 8                      // maximum concurrent GETs under load
+
+	IdleTimeout = 90 * time.Second // per-stream idle timeout before the relay is torn down
+	DialTimeout = 15 * time.Second // target connection establishment timeout
 )
 
 const (
-	idleTimeout = 90 * time.Second
-
 	heartbeatInterval = 30 * time.Second
 	StaleSessionAge   = 90 * time.Second
 	doneCheckInterval = 3 * time.Second
@@ -408,6 +409,7 @@ func (p *Pipe) startReader() {
 				var rlErr *rateLimitError
 				if errors.As(err, &rlErr) {
 					polled = true
+					log.Printf("[%s] GET rate limited (429), backing off %v", p.sessionID, rlErr.wait)
 					select {
 					case <-time.After(rlErr.wait):
 						continue
@@ -519,7 +521,7 @@ func (p *Pipe) Write(data []byte) (err error) {
 
 func (p *Pipe) Read() ([]byte, error) {
 	p.startOnce.Do(p.start)
-	timer := time.NewTimer(idleTimeout)
+	timer := time.NewTimer(IdleTimeout)
 	defer timer.Stop()
 
 	select {
@@ -531,7 +533,7 @@ func (p *Pipe) Read() ([]byte, error) {
 		}
 		return data, nil
 	case <-timer.C:
-		return nil, fmt.Errorf("idle timeout after %v", idleTimeout)
+		return nil, fmt.Errorf("idle timeout after %v", IdleTimeout)
 	}
 }
 

@@ -171,6 +171,16 @@ func ClientURI(baseURL, login, password string) string {
 	return u.String()
 }
 
+// ClientURIMasked is ClientURI with the password redacted. Use it for logs so
+// the app password never lands in docker/journal output; the operator already
+// holds the real credentials in the server's .env.
+func ClientURIMasked(baseURL, login, password string) string {
+	if password == "" {
+		return ClientURI(baseURL, login, password)
+	}
+	return ClientURI(baseURL, login, "REDACTED")
+}
+
 func printClientURI(prefix, uri string) {
 	log.Printf("%s: ════════════════════════════════════════════════════", prefix)
 	log.Printf("%s: client -uri  %s", prefix, uri)

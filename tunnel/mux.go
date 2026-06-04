@@ -364,7 +364,7 @@ func serverStream(stream net.Conn, proxy *ProxyConfig) {
 	target := net.JoinHostPort(host, port)
 	log.Printf("[s%d] connecting to %s", id, target)
 
-	dialCtx, dialCancel := context.WithTimeout(context.Background(), 15*time.Second)
+	dialCtx, dialCancel := context.WithTimeout(context.Background(), DialTimeout)
 	defer dialCancel()
 	var conn net.Conn
 	if proxy != nil {
