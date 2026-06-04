@@ -58,15 +58,15 @@ object ImageCache {
      * stored, and returned. Runs on the WebView's IO thread (shouldInterceptRequest is already off the
      * UI thread). Returns null on any failure so the WebView falls back to loading the image itself.
      */
-    fun get(ctx: Context, req: WebResourceRequest, listen: String, userAgent: String?): WebResourceResponse? {
+    fun get(ctx: Context, req: WebResourceRequest, listen: String, userAgent: String?, force: Boolean = false): WebResourceResponse? {
         val url = req.url?.toString() ?: return null
         val f = File(dir(ctx), keyFor(url))
-        if (f.exists() && f.length() > 0) {
+        if (!force && f.exists() && f.length() > 0) {
             f.setLastModified(System.currentTimeMillis())   // touch for LRU
             val (mime, enc) = readMeta(f)
             return WebResourceResponse(mime, enc, ByteArrayInputStream(f.readBytes()))
         }
-        return fetchAndStore(ctx, url, f, listen, userAgent)
+        return fetchAndStore(ctx, url, f, listen, userAgent)   // force → re-fetch + overwrite (explicit refresh)
     }
 
     private fun fetchAndStore(ctx: Context, url: String, f: File, listen: String, userAgent: String?): WebResourceResponse? {

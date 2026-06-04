@@ -36,6 +36,7 @@ class BrowserActivity : AppCompatActivity() {
     @Volatile private var opts = ContentBlocker.Opts(true, false, false, false, false)
     @Volatile private var imgCacheOn = true        // persistent disk image cache (read off the WebView IO thread)
     @Volatile private var webUa: String? = null    // cached UA string (web.settings is UI-thread only)
+    @Volatile private var forceImageRefresh = false // explicit refresh re-fetches images, bypassing the disk cache
 
     private var pageUrl: String? = null        // logical current URL (both modes)
     private var loadingTextDoc = false         // next onPageStarted is our loadDataWithBaseURL
@@ -160,6 +161,7 @@ class BrowserActivity : AppCompatActivity() {
 
     /** Force a network refresh of the current page, bypassing the cache (tap on the cache hint). */
     private fun reloadFresh() {
+        forceImageRefresh = true   // tap-the-hint refresh also re-pulls images
         val u = currentUrl()
         if (textOnly() && u != null) { renderText(u); return }
         web.settings.cacheMode = WebSettings.LOAD_NO_CACHE
@@ -470,7 +472,7 @@ class BrowserActivity : AppCompatActivity() {
                 }
                 if (r != null) return r                                   // blocked → done
                 if (imgCacheOn && ImageCache.handles(request)) {          // serve/store images ourselves
-                    val cached = ImageCache.get(applicationContext, request, listen, webUa)
+                    val cached = ImageCache.get(applicationContext, request, listen, webUa, forceImageRefresh)
                     if (cached != null) {
                         if (consoleEnabled) DebugLog.add("[img] ${request.url}")
                         return cached
@@ -490,6 +492,7 @@ class BrowserActivity : AppCompatActivity() {
                 ui.removeCallbacks(watchdog)
                 b.swipe.isRefreshing = false
                 if (restoreCacheMode) { web.settings.cacheMode = WebSettings.LOAD_DEFAULT; restoreCacheMode = false }
+                forceImageRefresh = false   // refresh done — go back to serving images from cache
                 // fallback path: a JS-rendered page finished → text-ify its DOM now
                 val fb = fallbackUrl
                 if (fb != null && url == fb) {
@@ -577,6 +580,7 @@ class BrowserActivity : AppCompatActivity() {
         b.swipe.setColorSchemeColors(themeColor(com.google.android.material.R.attr.colorPrimary))
         b.swipe.setProgressBackgroundColorSchemeColor(themeColor(com.google.android.material.R.attr.colorSurfaceContainer))
         b.swipe.setOnRefreshListener {
+            forceImageRefresh = true   // pull-to-refresh = "give me a fresh copy", images included
             val u = currentUrl()
             if (textOnly() && u != null) renderText(u) else web.reload()
         }
