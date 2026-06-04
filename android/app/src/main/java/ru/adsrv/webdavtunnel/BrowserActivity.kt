@@ -11,6 +11,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
@@ -42,6 +43,9 @@ class BrowserActivity : AppCompatActivity() {
     @Volatile private var consoleEnabled = false // capture debug logs only when the console is on
     private var consoleFilter = "all"            // all | net | log
     private var frozen = false                   // pause JS timers + block new WS/SSE
+    private var restoreCacheMode = false         // reset cacheMode → LOAD_DEFAULT on next onPageFinished
+    private var cameFromHistory = false          // last nav was back/forward → show "from cache" hint
+    private var statusIsCacheHint = false        // current status line is the cache hint (tap = fresh reload)
 
     private val ui = Handler(Looper.getMainLooper())
     private var lastErrLine = ""
@@ -137,6 +141,29 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun currentUrl(): String? =
         pageUrl ?: web.url?.takeIf { it != "about:blank" && !it.startsWith("data:") }
+
+    /**
+     * Back/forward through WebView history. Through the slow tunnel a normal history nav revalidates
+     * every resource (≈1.5s/req); LOAD_CACHE_ELSE_NETWORK serves the already-fetched page from cache
+     * instead. The mode is restored to LOAD_DEFAULT once the cached page finishes, and a tap/pull-down
+     * hint lets the user grab a fresh copy when they actually want one.
+     */
+    private fun historyGo(forward: Boolean) {
+        if (forward) { if (!web.canGoForward()) return } else { if (!web.canGoBack()) return }
+        web.settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
+        restoreCacheMode = true
+        cameFromHistory = true
+        if (forward) web.goForward() else web.goBack()
+    }
+
+    /** Force a network refresh of the current page, bypassing the cache (tap on the cache hint). */
+    private fun reloadFresh() {
+        val u = currentUrl()
+        if (textOnly() && u != null) { renderText(u); return }
+        web.settings.cacheMode = WebSettings.LOAD_NO_CACHE
+        restoreCacheMode = true
+        web.reload()
+    }
 
     // ── text browser mode ─────────────────────────────────────────────────────────
     // "Text only" fetches the raw HTML in ONE request through the tunnel and renders a
@@ -424,6 +451,7 @@ class BrowserActivity : AppCompatActivity() {
             builtInZoomControls = true
             displayZoomControls = false
             setSupportZoom(true)
+            cacheMode = WebSettings.LOAD_DEFAULT   // history nav temporarily flips this to LOAD_CACHE_ELSE_NETWORK
         }
 
         web.webViewClient = object : WebViewClient() {
@@ -449,6 +477,7 @@ class BrowserActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 ui.removeCallbacks(watchdog)
                 b.swipe.isRefreshing = false
+                if (restoreCacheMode) { web.settings.cacheMode = WebSettings.LOAD_DEFAULT; restoreCacheMode = false }
                 // fallback path: a JS-rendered page finished → text-ify its DOM now
                 val fb = fallbackUrl
                 if (fb != null && url == fb) {
@@ -469,6 +498,10 @@ class BrowserActivity : AppCompatActivity() {
                 }
                 hideSpinner()
                 if (statusIsLoading()) hideStatus()
+                if (cameFromHistory) {
+                    cameFromHistory = false
+                    if (!frozen) showCacheHint()   // frozen indicator takes the line if we're frozen
+                }
                 if (effWebrtc() && effJs()) injectWebRtcGuard()
                 Settings.browser(this@BrowserActivity).edit().putString("last_url", currentUrl() ?: url).apply()
                 if (frozen) { showFrozenIndicator(); ui.postDelayed({ if (frozen) applyFreeze() }, 1500) }   // let snapshot arrive, then re-freeze
@@ -547,6 +580,7 @@ class BrowserActivity : AppCompatActivity() {
         // tap the status line to copy it (handy for errors); when frozen, tap = resume
         b.txtStatus.setOnClickListener {
             if (frozen) { setFrozen(false); return@setOnClickListener }  // tap chip to resume
+            if (statusIsCacheHint) { hideStatus(); reloadFresh(); return@setOnClickListener }  // tap hint = fresh load
             val t = b.txtStatus.text?.toString().orEmpty()
             if (t.isNotBlank() && !t.startsWith("Copied")) { copyToClipboard(t); setStatusTransient("Copied", 1500) }
         }
@@ -668,8 +702,8 @@ class BrowserActivity : AppCompatActivity() {
         b.swWebrtc.setOnCheckedChangeListener { _, v -> Settings.bSet(this, Settings.B.WEBRTC, v); applyWebSettings(true) }
 
         // navigation
-        b.btnNavBack.setOnClickListener { if (web.canGoBack()) web.goBack(); closePanel() }
-        b.btnNavFwd.setOnClickListener { if (web.canGoForward()) web.goForward(); closePanel() }
+        b.btnNavBack.setOnClickListener { historyGo(forward = false); closePanel() }
+        b.btnNavFwd.setOnClickListener { historyGo(forward = true); closePanel() }
         b.btnConnection.setOnClickListener { finish() }
         b.btnHome.setOnClickListener {
             val u = currentUrl() ?: web.url
@@ -755,6 +789,7 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun hideStatus() {
+        statusIsCacheHint = false
         b.txtStatus.text = ""
         b.txtStatus.visibility = android.view.View.GONE
     }
@@ -851,8 +886,15 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun setStatus(text: String) {
         ui.removeCallbacks(hideStatusRunnable)   // a newer message cancels a pending auto-hide
+        statusIsCacheHint = false                // any newer message is no longer the tap-to-refresh hint
         b.txtStatus.text = text
         b.txtStatus.visibility = android.view.View.VISIBLE
+    }
+
+    /** Persistent hint after a back/forward: page came from cache, tap (or pull down) for a fresh copy. */
+    private fun showCacheHint() {
+        setStatus(getString(R.string.from_cache_hint))
+        statusIsCacheHint = true
     }
 
     /** Show a confirmation that auto-hides after [ms] (used for one-off results, not errors). */
@@ -898,7 +940,7 @@ class BrowserActivity : AppCompatActivity() {
         } else if (b.panel.visibility == android.view.View.VISIBLE) {
             b.panel.visibility = android.view.View.GONE
         } else if (web.canGoBack()) {
-            web.goBack()
+            historyGo(forward = false)
         } else {
             @Suppress("DEPRECATION") super.onBackPressed()
         }

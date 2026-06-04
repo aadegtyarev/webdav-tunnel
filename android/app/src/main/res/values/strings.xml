@@ -53,6 +53,7 @@
     <!-- status -->
     <string name="cache_cleared">Cache cleared</string>
     <string name="loading_fmt">Loading… %1$d%%</string>
+    <string name="from_cache_hint">↩ From cache · tap or pull down to refresh</string>
 
     <!-- connection screen: level 3 tuning -->
     <string name="advanced_title">Advanced: speed &amp; timeouts</string>
