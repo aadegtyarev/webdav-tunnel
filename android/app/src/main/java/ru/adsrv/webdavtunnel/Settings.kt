@@ -52,6 +52,7 @@ object Settings {
         // level 1 (quick drawer) — the toggles flipped most while surfing
         const val IMAGES = "images";   const val DEF_IMAGES = true    // on: CSS icons (e.g. DDG search button) need images
         const val LAZY_IMG = "lazy_img"; const val DEF_LAZY_IMG = true // Clean: load images on scroll vs all at once
+        const val IMG_CACHE = "img_cache"; const val DEF_IMG_CACHE = true // persistent disk image cache (one fetch per image, survives back/forward + restart)
         const val JS = "js";           const val DEF_JS = true        // on: full browsing by default
         const val TEXTONLY = "textonly"; const val DEF_TEXTONLY = false // "Clean" reformat mode
         const val ZOOM = "zoom";         const val DEF_ZOOM = 100        // text size %, applied via WebView textZoom

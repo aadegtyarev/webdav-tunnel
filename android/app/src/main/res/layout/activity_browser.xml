@@ -190,6 +190,13 @@
                 android:text="@string/tg_lazy" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swImgCache"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/tg_imgcache" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/swJs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
