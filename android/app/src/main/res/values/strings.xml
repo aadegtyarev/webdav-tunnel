@@ -1,0 +1,60 @@
+<resources>
+    <string name="app_name">WebDAV Tunnel</string>
+    <string name="browser_title">Tunnel Browser</string>
+    <string name="open_browser">Open browser</string>
+    <string name="browser_needs_tunnel">Connect the tunnel first</string>
+
+    <!-- action row (icon buttons) content descriptions -->
+    <string name="cd_back">Back</string>
+    <string name="cd_forward">Forward</string>
+    <string name="cd_home">Site home</string>
+    <string name="cd_bookmark">Bookmark this page</string>
+    <string name="cd_clear_cache">Clear cache &amp; reload</string>
+    <string name="cd_connection">Connection screen</string>
+    <string name="cd_screenshot">Screenshot full page</string>
+    <string name="debug_console">Debug console (console · network · errors)</string>
+    <string name="tg_freeze">Freeze background (pause polling &amp; streams)</string>
+
+    <!-- bookmarks -->
+    <string name="bookmarks_title">Bookmarks</string>
+    <string name="bookmarks_empty">No bookmarks yet — open a page and tap the bookmark icon</string>
+    <string name="bookmark_removed">Bookmark removed</string>
+    <string name="bookmark_saved">Saved to bookmarks</string>
+
+    <!-- "This page" — ON = show/allow -->
+    <string name="this_page_title">This page</string>
+    <string name="tg_images">Images</string>
+    <string name="tg_lazy">Lazy images (load on scroll)</string>
+    <string name="tg_js">JavaScript</string>
+    <string name="tg_fonts">Web fonts</string>
+    <string name="tg_media">Media (video/audio)</string>
+    <string name="tg_frames">Third-party frames</string>
+    <string name="tg_speculative">Speculative loads (prefetch)</string>
+    <string name="tg_textonly">Clean (reformat page: strip clutter, keep text + links)</string>
+    <string name="text_size">Text size</string>
+
+    <!-- "Protection" — ON = protect -->
+    <string name="protection_title">Protection</string>
+    <string name="tg_adblock">Ad-block</string>
+    <string name="tg_webrtc">WebRTC leak guard</string>
+
+    <!-- collapsible setup -->
+    <string name="more_title">More / setup</string>
+    <string name="tools_title">Tools</string>
+    <string name="console_buffer">Console buffer</string>
+    <string name="clear_cache">Clear cache &amp; reload</string>
+    <string name="home_url_hint">Home page URL (empty = start page)</string>
+    <string name="search_url_hint">Search URL (%s = query)</string>
+    <string name="tg_restore_session">Restore last session on open</string>
+    <string name="blocklist_title">Ad-block list</string>
+    <string name="blocklist_url_hint">Blocklist URL (hosts format)</string>
+    <string name="blocklist_update">Update blocklist</string>
+
+    <!-- status -->
+    <string name="cache_cleared">Cache cleared</string>
+    <string name="loading_fmt">Loading… %1$d%%</string>
+
+    <!-- connection screen: level 3 tuning -->
+    <string name="advanced_title">Advanced: speed &amp; timeouts</string>
+    <string name="reset_fast">Reset to fast profile</string>
+</resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Warm amber / terracotta palette (light). Cozy tones instead of the
+         default Material violet. Roughly a Material You scheme from a warm seed. -->
+    <color name="md_primary">#9A4A1B</color>
+    <color name="md_on_primary">#FFFFFF</color>
+    <color name="md_primary_container">#FFDBC8</color>
+    <color name="md_on_primary_container">#380D00</color>
+    <color name="md_secondary">#765848</color>
+    <color name="md_on_secondary">#FFFFFF</color>
+    <color name="md_secondary_container">#FFDBC8</color>
+    <color name="md_on_secondary_container">#2B160A</color>
+    <color name="md_tertiary">#665E2F</color>
+    <color name="md_on_tertiary">#FFFFFF</color>
+    <color name="md_tertiary_container">#EEE3A7</color>
+    <color name="md_on_tertiary_container">#201B00</color>
+    <color name="md_background">#FFF8F5</color>
+    <color name="md_on_background">#221A15</color>
+    <color name="md_surface">#FFF8F5</color>
+    <color name="md_on_surface">#221A15</color>
+    <color name="md_surface_variant">#F4DED3</color>
+    <color name="md_on_surface_variant">#52443B</color>
+    <color name="md_surface_container">#FBEADF</color>
+    <color name="md_outline">#85746A</color>
+    <color name="md_outline_variant">#D7C3B8</color>
+</resources>

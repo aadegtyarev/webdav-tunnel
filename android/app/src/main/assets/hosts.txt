@@ -1,0 +1,46 @@
+# Starter ad/tracker blocklist (hosts format). One domain per line; subdomains
+# are matched automatically by the browser's blocker.
+#
+# Replace this file with the full StevenBlack list for real coverage:
+#   curl -L https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts \
+#     -o android/app/src/main/assets/hosts.txt
+# The blocker reads "0.0.0.0 domain" / "127.0.0.1 domain" lines and bare domains.
+0.0.0.0 doubleclick.net
+0.0.0.0 googlesyndication.com
+0.0.0.0 googleadservices.com
+0.0.0.0 google-analytics.com
+0.0.0.0 googletagmanager.com
+0.0.0.0 googletagservices.com
+0.0.0.0 adservice.google.com
+0.0.0.0 pagead2.googlesyndication.com
+0.0.0.0 ads.yahoo.com
+0.0.0.0 adnxs.com
+0.0.0.0 advertising.com
+0.0.0.0 scorecardresearch.com
+0.0.0.0 quantserve.com
+0.0.0.0 criteo.com
+0.0.0.0 criteo.net
+0.0.0.0 outbrain.com
+0.0.0.0 taboola.com
+0.0.0.0 amazon-adsystem.com
+0.0.0.0 adsrvr.org
+0.0.0.0 mc.yandex.ru
+0.0.0.0 an.yandex.ru
+0.0.0.0 ads.facebook.com
+0.0.0.0 facebook.net
+0.0.0.0 connect.facebook.net
+0.0.0.0 analytics.twitter.com
+0.0.0.0 ads-twitter.com
+0.0.0.0 hotjar.com
+0.0.0.0 moatads.com
+0.0.0.0 rubiconproject.com
+0.0.0.0 pubmatic.com
+0.0.0.0 openx.net
+0.0.0.0 casalemedia.com
+0.0.0.0 360yield.com
+0.0.0.0 smartadserver.com
+0.0.0.0 zedo.com
+0.0.0.0 bidswitch.net
+0.0.0.0 mathtag.com
+0.0.0.0 serving-sys.com
+0.0.0.0 yieldmo.com

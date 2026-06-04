@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Warm amber / terracotta palette (dark). Same hue family, low-luminance
+         surfaces with a brown tint so dark mode stays warm, not grey-violet. -->
+    <color name="md_primary">#FFB68E</color>
+    <color name="md_on_primary">#561F00</color>
+    <color name="md_primary_container">#7A3308</color>
+    <color name="md_on_primary_container">#FFDBC8</color>
+    <color name="md_secondary">#E6BEAB</color>
+    <color name="md_on_secondary">#432B1D</color>
+    <color name="md_secondary_container">#5C4131</color>
+    <color name="md_on_secondary_container">#FFDBC8</color>
+    <color name="md_tertiary">#D2C68D</color>
+    <color name="md_on_tertiary">#363100</color>
+    <color name="md_tertiary_container">#4E4717</color>
+    <color name="md_on_tertiary_container">#EEE3A7</color>
+    <color name="md_background">#1A120D</color>
+    <color name="md_on_background">#F0DFD6</color>
+    <color name="md_surface">#1A120D</color>
+    <color name="md_on_surface">#F0DFD6</color>
+    <color name="md_surface_variant">#52443B</color>
+    <color name="md_on_surface_variant">#D7C3B8</color>
+    <color name="md_surface_container">#271D17</color>
+    <color name="md_outline">#A08D82</color>
+    <color name="md_outline_variant">#52443B</color>
+</resources>

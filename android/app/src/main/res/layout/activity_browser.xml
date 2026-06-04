@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- toolbar: address bar + panel button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="4dp">
+
+        <EditText
+            android:id="@+id/editUrl"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Search or type a URL"
+            android:imeOptions="actionGo"
+            android:inputType="textUri"
+            android:maxLines="1"
+            android:singleLine="true" />
+
+        <ImageButton
+            android:id="@+id/btnPanel"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="?attr/colorOnSurfaceVariant"
+            android:contentDescription="Menu"
+            android:src="@drawable/ic_settings" />
+    </LinearLayout>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:trackThickness="4dp"
+        app:indicatorColor="?attr/colorPrimary"
+        app:trackColor="?attr/colorSurfaceVariant"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <!-- unobtrusive status line (loading % / errors / 429 / downloads) -->
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="2dp"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:background="?attr/colorSurfaceVariant"
+        android:visibility="gone" />
+
+    <!-- slide-down panel: actions · bookmarks · this-page · protection · setup -->
+    <ScrollView
+        android:id="@+id/panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="420dp"
+        android:visibility="gone"
+        android:background="?attr/colorSurfaceContainer">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- action row: back · forward · bookmark · clear cache · connection -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnNavBack"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:scaleType="centerInside"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/cd_back"
+                    android:src="@drawable/ic_back" />
+
+                <ImageButton
+                    android:id="@+id/btnNavFwd"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:scaleType="centerInside"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/cd_forward"
+                    android:src="@drawable/ic_forward" />
+
+                <ImageButton
+                    android:id="@+id/btnHome"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:scaleType="centerInside"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/cd_home"
+                    android:src="@drawable/ic_home" />
+
+                <ImageButton
+                    android:id="@+id/btnBookmarkAdd"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:scaleType="centerInside"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/cd_bookmark"
+                    android:src="@drawable/ic_bookmark" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="8dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <!-- bookmarks -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/bookmarks_title"
+                android:textStyle="bold"
+                android:paddingBottom="4dp" />
+
+            <LinearLayout
+                android:id="@+id/bmList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/txtBookmarksEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:text="@string/bookmarks_empty" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="8dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <!-- this page (ON = show/allow) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/this_page_title"
+                android:textStyle="bold"
+                android:paddingBottom="4dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swImages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tg_images" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swLazy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/tg_lazy" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swJs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tg_js" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swFonts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tg_fonts" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swMedia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tg_media" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swFrames"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tg_frames" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swSpeculative"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tg_speculative" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:text="@string/tg_textonly" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/text_size" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnZoomOut"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="0dp"
+                    android:textSize="18sp"
+                    android:contentDescription="@string/text_size"
+                    android:text="−" />
+
+                <TextView
+                    android:id="@+id/txtZoom"
+                    android:layout_width="56dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="100%" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnZoomIn"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="0dp"
+                    android:textSize="18sp"
+                    android:contentDescription="@string/text_size"
+                    android:text="+" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="8dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <!-- protection (ON = protect) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/protection_title"
+                android:textStyle="bold"
+                android:paddingBottom="4dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swAdblock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tg_adblock" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swWebrtc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tg_webrtc" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="8dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <!-- collapsible setup (set-and-forget) -->
+            <TextView
+                android:id="@+id/moreHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="6dp"
+                android:textStyle="bold"
+                android:text="@string/more_title" />
+
+            <LinearLayout
+                android:id="@+id/moreBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/editHome"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/home_url_hint"
+                    android:inputType="textUri"
+                    android:maxLines="1"
+                    android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/editSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/search_url_hint"
+                    android:inputType="textUri"
+                    android:maxLines="1"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/swRestore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tg_restore_session" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:text="@string/blocklist_title" />
+
+                <EditText
+                    android:id="@+id/editBlocklistUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/blocklist_url_hint"
+                    android:inputType="textUri"
+                    android:maxLines="1"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUpdateList"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/blocklist_update" />
+
+                    <TextView
+                        android:id="@+id/txtListInfo"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="8dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tools_title"
+                    android:textStyle="bold"
+                    android:paddingBottom="4dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnClearCache"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/clear_cache" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnShot"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cd_screenshot" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConnection"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cd_connection" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/swFreeze"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/tg_freeze" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/swConsole"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/debug_console" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/console_buffer" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMbMinus"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingHorizontal="0dp"
+                        android:textSize="18sp"
+                        android:text="−" />
+
+                    <TextView
+                        android:id="@+id/txtConsoleMb"
+                        android:layout_width="64dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="1 MB" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMbPlus"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingHorizontal="0dp"
+                        android:textSize="18sp"
+                        android:text="+" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <WebView
+                android:id="@+id/web"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </FrameLayout>
+
+    <!-- debug console: embedded below the page (resizes content, not overlay) -->
+    <LinearLayout
+        android:id="@+id/consolePanel"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:orientation="vertical"
+        android:background="?attr/colorSurfaceContainer"
+        android:visibility="gone">
+
+            <FrameLayout
+                android:id="@+id/consoleHandle"
+                android:layout_width="match_parent"
+                android:layout_height="22dp">
+
+                <View
+                    android:layout_width="36dp"
+                    android:layout_height="4dp"
+                    android:layout_gravity="center"
+                    android:background="?attr/colorOutline" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTabAll" style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:minWidth="0dp" android:insetLeft="0dp" android:insetRight="0dp"
+                    android:paddingHorizontal="8dp" android:textSize="12sp" android:text="All" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTabNet" style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:minWidth="0dp" android:insetLeft="0dp" android:insetRight="0dp"
+                    android:paddingHorizontal="8dp" android:textSize="12sp" android:text="Net" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTabLog" style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:minWidth="0dp" android:insetLeft="0dp" android:insetRight="0dp"
+                    android:paddingHorizontal="8dp" android:textSize="12sp" android:text="Log" />
+
+                <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConsoleCopy" style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:minWidth="0dp" android:insetLeft="0dp" android:insetRight="0dp"
+                    android:paddingHorizontal="8dp" android:textSize="12sp" android:text="Copy" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConsoleClear" style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:minWidth="0dp" android:insetLeft="0dp" android:insetRight="0dp"
+                    android:paddingHorizontal="8dp" android:textSize="12sp" android:text="Clear" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConsoleClose" style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:minWidth="0dp" android:insetLeft="0dp" android:insetRight="0dp"
+                    android:paddingHorizontal="8dp" android:textSize="14sp" android:text="✕" />
+            </LinearLayout>
+
+            <ScrollView
+                android:id="@+id/consoleScroll"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/txtConsole"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:fontFamily="monospace"
+                    android:textSize="11sp"
+                    android:textIsSelectable="true" />
+            </ScrollView>
+        </LinearLayout>
+</LinearLayout>

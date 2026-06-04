@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'ru.adsrv.webdavtunnel'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'ru.adsrv.webdavtunnel'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation files('libs/webdavtunnel.aar')
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    // WebView SOCKS5 proxy override (ProxyController) + feature detection
+    implementation 'androidx.webkit:webkit:1.11.0'
+    // pull-to-refresh gesture over the WebView
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    // Proxy-aware downloader (routes file downloads through the same SOCKS5)
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    // HTML parser for text/reader mode (single fetch → clean text + links, no render)
+    implementation 'org.jsoup:jsoup:1.17.2'
+}
