@@ -1,2 +1,12 @@
 build
 *.exe
+
+# binaries are shipped via GitHub Releases, not committed
+*.aar
+*.apk
+
+# redundant gomobile output dir (AAR lives in android/app/libs/, ignored above)
+mobile-android/
+
+# internal hand-off notes — not for publication
+HANDOFF.md

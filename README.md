@@ -4,6 +4,16 @@ A TCP tunnel that uses any WebDAV server as a transport layer. Traffic is serial
 
 > **Disclaimer:** This project is provided for educational and research purposes only. Use it only on networks and systems you own or have explicit permission to access. The authors are not responsible for any misuse.
 
+> **Fork.** This is a fork of [spkprsnts/webdav-tunnel](https://github.com/spkprsnts/webdav-tunnel) (the Go tunnel core, MIT). It adds an **Android client with an in-app, tunnel-pinned browser** (bookmarks, reader mode, content/ad-block controls, WebRTC leak guard, warm Material 3 theme), deployment artifacts (Docker + systemd), and assorted tunnel/server tuning.
+
+## Documentation
+
+- **Deploy a relay + exit server** (cloud WebDAV like Yandex.Disk, incl. the app-password setup): [deploy/README.md](deploy/README.md)
+- **Android app** (install, configure, in-app browser, build): [android/README.md](android/README.md)
+- **Desktop / server CLI**: this document (below).
+
+Prebuilt binaries and the Android APK are attached to the repository **Releases**.
+
 ## How it works
 
 ```
