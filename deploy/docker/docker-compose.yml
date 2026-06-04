@@ -1,0 +1,34 @@
+services:
+  server:
+    build: .
+    image: webdav-tunnel:latest
+    container_name: webdav-tunnel-server
+    restart: unless-stopped
+    # Креды берутся из .env (рядом). ${VAR:?...} = упасть с понятной ошибкой, если не задано.
+    # Туннель в режиме server: только исходящие HTTPS к Яндексу, входящих портов нет.
+    command:
+      - -mode
+      - server
+      - -webdav
+      - ${WEBDAV_URL:?set WEBDAV_URL in .env}
+      - -login
+      - ${WEBDAV_LOGIN:?set WEBDAV_LOGIN in .env}
+      - -password
+      - ${WEBDAV_PASSWORD:?set WEBDAV_PASSWORD in .env}
+      # Профиль троттлинга под 2-3 устройства на одном аккаунте:
+      - -puts
+      - "3"
+      - -read-min
+      - "1"
+      - -read-max
+      - "3"
+      - -poll-min
+      - 400ms
+      - -poll-max
+      - 2s
+    # Ротация логов, чтобы не засорять диск.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

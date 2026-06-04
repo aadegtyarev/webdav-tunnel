@@ -1,0 +1,29 @@
+[Unit]
+Description=webdav-tunnel exit node (server mode, Yandex.Disk relay)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Креды Яндекса берутся отсюда (см. server.env.example):
+EnvironmentFile=/opt/webdav-tunnel/server.env
+# $TUNING_ARGS (без фигурных скобок) — systemd разобьёт его на отдельные
+# аргументы по пробелам; пустое значение просто исчезает.
+ExecStart=/opt/webdav-tunnel/webdav-tunnel \
+  -mode server \
+  -webdav ${WEBDAV_URL} \
+  -login ${WEBDAV_LOGIN} \
+  -password ${WEBDAV_PASSWORD} \
+  $TUNING_ARGS
+Restart=always
+RestartSec=5
+# Минимальное ужесточение прав:
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+# server.env читается до сброса прав через EnvironmentFile, каталог менять не нужно.
+
+[Install]
+WantedBy=multi-user.target
