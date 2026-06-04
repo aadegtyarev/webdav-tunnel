@@ -8,5 +8,12 @@ build
 # redundant gomobile output dir (AAR lives in android/app/libs/, ignored above)
 mobile-android/
 
+# release signing material — keys never live in the repo (CI uses GitHub Secrets)
+*.jks
+*.keystore
+*.p12
+*.pfx
+keystore.properties
+
 # internal hand-off notes — not for publication
 HANDOFF.md

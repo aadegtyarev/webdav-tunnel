@@ -15,9 +15,26 @@ android {
         versionName '1.1'
     }
 
+    // Release signing is driven by env vars so the key never lives in the repo.
+    // Set in CI from GitHub Secrets; locally export them before ./gradlew assembleRelease.
+    // When unset, the release build is produced unsigned (so contributors without the
+    // key can still build) — minify stays off to keep gomobile/JS-interface classes.
+    signingConfigs {
+        release {
+            def ks = System.getenv('KEYSTORE_FILE')
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS')
+                keyPassword System.getenv('KEY_PASSWORD')
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            if (System.getenv('KEYSTORE_FILE')) signingConfig signingConfigs.release
         }
     }
 
