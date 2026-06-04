@@ -253,16 +253,22 @@ class BrowserActivity : AppCompatActivity() {
     private fun setFrozen(on: Boolean) {
         frozen = on
         Settings.bSet(this, Settings.B.FREEZE, on)
-        if (on) {
-            web.pauseTimers(); injectFreezeStub()
-            setStatusTransient("Background frozen — polling & new streams paused")
-        } else {
-            web.resumeTimers()
-            setStatusTransient("Background resumed — reload to restore streams")
-        }
+        updateFreezeIcon()
+        if (on) { applyFreeze(); showFrozenIndicator() }
+        else { web.evaluateJavascript("window.__frozen=false;", null); setStatusTransient("Background resumed — pull down to reconnect") }
     }
 
-    private fun injectFreezeStub() = web.evaluateJavascript(FREEZE_STUB, null)
+    private fun updateFreezeIcon() {
+        b.btnFreeze.setColorFilter(themeColor(
+            if (frozen) com.google.android.material.R.attr.colorPrimary
+            else com.google.android.material.R.attr.colorOnSurfaceVariant
+        ))
+    }
+
+    /** Persistent chip while frozen: shows state + how to update / resume without the menu. */
+    private fun showFrozenIndicator() = setStatus("Frozen — pull down to refresh · tap to resume")
+
+    private fun applyFreeze() = web.evaluateJavascript(FREEZE_APPLY_JS, null)
 
     private fun setConsole(on: Boolean) {
         consoleEnabled = on
@@ -465,7 +471,7 @@ class BrowserActivity : AppCompatActivity() {
                 if (statusIsLoading()) hideStatus()
                 if (effWebrtc() && effJs()) injectWebRtcGuard()
                 Settings.browser(this@BrowserActivity).edit().putString("last_url", currentUrl() ?: url).apply()
-                if (frozen) { web.pauseTimers(); injectFreezeStub() }   // keep new page frozen too
+                if (frozen) { showFrozenIndicator(); ui.postDelayed({ if (frozen) applyFreeze() }, 1500) }   // let snapshot arrive, then re-freeze
             }
 
             override fun onReceivedError(
@@ -534,10 +540,15 @@ class BrowserActivity : AppCompatActivity() {
             if (actionId == EditorInfo.IME_ACTION_GO) { go(b.editUrl.text.toString()); true } else false
         }
         b.btnPanel.setOnClickListener { togglePanel() }
-        // tap the status line to copy it (handy for errors)
+        b.btnFreeze.setOnClickListener { setFrozen(!frozen) }
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            androidx.webkit.WebViewCompat.addDocumentStartJavaScript(web, STREAM_TRACKER_JS, setOf("*"))
+        }
+        // tap the status line to copy it (handy for errors); when frozen, tap = resume
         b.txtStatus.setOnClickListener {
+            if (frozen) { setFrozen(false); return@setOnClickListener }  // tap chip to resume
             val t = b.txtStatus.text?.toString().orEmpty()
-            if (t.isNotBlank() && !t.startsWith("✓ copied")) { copyToClipboard(t); setStatusTransient("✓ copied", 1500) }
+            if (t.isNotBlank() && !t.startsWith("Copied")) { copyToClipboard(t); setStatusTransient("Copied", 1500) }
         }
     }
 
@@ -718,11 +729,10 @@ class BrowserActivity : AppCompatActivity() {
         b.btnShot.setOnClickListener { closePanel(); web.postDelayed({ captureFullPage() }, 200) }
 
         // tools: debug console (works in any mode; off by default)
-        // tools: freeze background activity
+        // freeze state (toggled via the toolbar icon)
         frozen = Settings.bGet(this, Settings.B.FREEZE, Settings.B.DEF_FREEZE)
-        b.swFreeze.isChecked = frozen
-        b.swFreeze.setOnCheckedChangeListener { _, v -> setFrozen(v) }
-        if (frozen) web.pauseTimers()
+        updateFreezeIcon()
+        if (frozen) showFrozenIndicator()
 
         consoleEnabled = Settings.bGet(this, Settings.B.CONSOLE_ON, Settings.B.DEF_CONSOLE_ON)
         b.swConsole.isChecked = consoleEnabled
@@ -974,15 +984,29 @@ img.zoom{position:fixed;inset:0;width:100vw;height:100vh;object-fit:contain;back
 })();
 """.trim()
 
-        // Freeze: stub WebSocket/EventSource so the page can't open new push streams.
-        // (JS timers are paused separately via WebView.pauseTimers(); existing sockets stay,
-        // but reconnect storms and new streams are blocked.)
-        val FREEZE_STUB = """
+        // Document-start: wrap WebSocket/EventSource BEFORE the page's scripts so we can
+        // track instances and, while frozen, close them + block reconnects. Navigation,
+        // fetch/XHR, forms and clicks are untouched (user actions still go through).
+        val STREAM_TRACKER_JS = """
 (function(){try{
- function W(){return{send:function(){},close:function(){},addEventListener:function(){},removeEventListener:function(){},readyState:3,onopen:null,onmessage:null,onerror:null,onclose:null};}
- try{window.WebSocket=W;}catch(e){}
- function E(){return{close:function(){},addEventListener:function(){},removeEventListener:function(){},readyState:2,onmessage:null,onerror:null,onopen:null};}
- try{window.EventSource=E;}catch(e){}
+ if(window.__wbWrapped)return; window.__wbWrapped=true;
+ window.__frozen=false; window.__streams=[];
+ var deadWS={send:function(){},close:function(){},addEventListener:function(){},removeEventListener:function(){},readyState:3,onopen:null,onmessage:null,onerror:null,onclose:null};
+ var OW=window.WebSocket;
+ if(OW){window.WebSocket=function(u,p){ if(window.__frozen)return deadWS; var w=(p!==undefined)?new OW(u,p):new OW(u); try{window.__streams.push(w);}catch(e){} return w; }; try{window.WebSocket.prototype=OW.prototype;}catch(e){}}
+ var deadES={close:function(){},addEventListener:function(){},removeEventListener:function(){},readyState:2,onmessage:null,onerror:null,onopen:null};
+ var OE=window.EventSource;
+ if(OE){window.EventSource=function(u,o){ if(window.__frozen)return deadES; var s=new OE(u,o); try{window.__streams.push(s);}catch(e){} return s; }; try{window.EventSource.prototype=OE.prototype;}catch(e){}}
+}catch(e){}})();
+""".trim()
+
+        // Apply freeze in the current page: block new streams, close open ones, kill polling.
+        val FREEZE_APPLY_JS = """
+(function(){try{
+ window.__frozen=true;
+ (window.__streams||[]).forEach(function(s){try{s.close();}catch(e){}}); window.__streams=[];
+ try{var hi=setInterval(function(){},999999);for(var i=0;i<=hi;i++)clearInterval(i);clearInterval(hi);}catch(e){}
+ try{window.setInterval=function(){return 0;};}catch(e){}
 }catch(e){}})();
 """.trim()
 
