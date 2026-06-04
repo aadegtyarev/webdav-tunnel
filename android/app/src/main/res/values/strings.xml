@@ -25,6 +25,7 @@
     <string name="this_page_title">This page</string>
     <string name="tg_images">Images</string>
     <string name="tg_lazy">Lazy images (load on scroll)</string>
+    <string name="tg_imgcache">Cache images on disk (~100 MB)</string>
     <string name="tg_js">JavaScript</string>
     <string name="tg_fonts">Web fonts</string>
     <string name="tg_media">Media (video/audio)</string>

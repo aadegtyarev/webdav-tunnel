@@ -34,6 +34,8 @@ class BrowserActivity : AppCompatActivity() {
 
     @Volatile private var topHost: String? = null
     @Volatile private var opts = ContentBlocker.Opts(true, false, false, false, false)
+    @Volatile private var imgCacheOn = true        // persistent disk image cache (read off the WebView IO thread)
+    @Volatile private var webUa: String? = null    // cached UA string (web.settings is UI-thread only)
 
     private var pageUrl: String? = null        // logical current URL (both modes)
     private var loadingTextDoc = false         // next onPageStarted is our loadDataWithBaseURL
@@ -453,6 +455,8 @@ class BrowserActivity : AppCompatActivity() {
             setSupportZoom(true)
             cacheMode = WebSettings.LOAD_DEFAULT   // history nav temporarily flips this to LOAD_CACHE_ELSE_NETWORK
         }
+        webUa = web.settings.userAgentString   // cache for the IO-thread image fetcher (web.settings is UI-only)
+        imgCacheOn = Settings.bGet(this, Settings.B.IMG_CACHE, Settings.B.DEF_IMG_CACHE)
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
@@ -464,7 +468,15 @@ class BrowserActivity : AppCompatActivity() {
                     val u = request.url?.toString().orEmpty()
                     if (u.startsWith("http")) DebugLog.add("[net${if (r != null) " BLOCK" else ""}] ${request.method} $u")
                 }
-                return r
+                if (r != null) return r                                   // blocked → done
+                if (imgCacheOn && ImageCache.handles(request)) {          // serve/store images ourselves
+                    val cached = ImageCache.get(applicationContext, request, listen, webUa)
+                    if (cached != null) {
+                        if (consoleEnabled) DebugLog.add("[img] ${request.url}")
+                        return cached
+                    }
+                }
+                return null
             }
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
@@ -662,6 +674,7 @@ class BrowserActivity : AppCompatActivity() {
         // reflect current state. "This page" toggles read ON = show/allow.
         b.swImages.isChecked = Settings.bGet(this, Settings.B.IMAGES, Settings.B.DEF_IMAGES)
         b.swLazy.isChecked = Settings.bGet(this, Settings.B.LAZY_IMG, Settings.B.DEF_LAZY_IMG)
+        b.swImgCache.isChecked = Settings.bGet(this, Settings.B.IMG_CACHE, Settings.B.DEF_IMG_CACHE)
         b.swJs.isChecked = Settings.bGet(this, Settings.B.JS, Settings.B.DEF_JS)
         // fonts/media/frames/speculative are stored as "block" flags — show the inverse
         b.swFonts.isChecked = !Settings.bGet(this, Settings.B.FONTS, Settings.B.DEF_FONTS)
@@ -683,6 +696,9 @@ class BrowserActivity : AppCompatActivity() {
         b.swLazy.setOnCheckedChangeListener { _, v ->
             Settings.bSet(this, Settings.B.LAZY_IMG, v)
             if (textOnly()) currentUrl()?.let { renderText(it) }
+        }
+        b.swImgCache.setOnCheckedChangeListener { _, v ->
+            Settings.bSet(this, Settings.B.IMG_CACHE, v); imgCacheOn = v
         }
         b.swJs.setOnCheckedChangeListener { _, v -> Settings.bSet(this, Settings.B.JS, v); applyWebSettings(true) }
         b.swFonts.setOnCheckedChangeListener { _, v -> Settings.bSet(this, Settings.B.FONTS, !v); applyWebSettings(true) }
@@ -751,6 +767,7 @@ class BrowserActivity : AppCompatActivity() {
         b.btnClearCache.setOnClickListener {
             web.clearCache(true)
             web.clearFormData()
+            ImageCache.clear(applicationContext)        // also wipe our persistent image cache
             setStatusTransient(getString(R.string.cache_cleared))
             closePanel()
             val u = currentUrl()
