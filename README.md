@@ -20,6 +20,11 @@ Prebuilt binaries and the Android APK are attached to the repository **Releases*
 [Browser] → SOCKS5 → [Client] → WebDAV files → [Server] → Internet
 ```
 
+> **One binary, three roles.** The client and the server (exit node) are the **same**
+> `webdav-tunnel` executable — you pick the role with `-mode client` / `-mode server`
+> (or `-mode selfhosted`, which also embeds its own WebDAV server). Build once, copy the
+> binary to both machines, run with different `-mode`.
+
 - The **client** exposes a local SOCKS5 proxy. Each incoming connection opens a [yamux](https://github.com/hashicorp/yamux) stream over a shared WebDAV pipe.
 - The **server** polls the same WebDAV storage, picks up sessions, and relays TCP traffic to the destination.
 - Data is split into numbered binary chunks stored as files. The reader uses adaptive polling and a read-ahead window to maximize throughput while staying within cloud rate limits.
