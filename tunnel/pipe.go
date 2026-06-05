@@ -16,7 +16,7 @@ import (
 
 var (
 	PollInterval       = 500 * time.Millisecond // maximum poll backoff when idle
-	MinPollInterval    = 100 * time.Millisecond // starting poll interval for adaptive backoff
+	MinPollInterval    = 200 * time.Millisecond // starting poll interval for adaptive backoff
 	CoalesceDelay      = 10 * time.Millisecond  // write coalescing window
 	ChunkDataSize      = 128*1024 - 1           // chunk size chosen to avoid cloud timeouts
 	MaxConcurrentPuts  = 8                      // parallel upload limit
