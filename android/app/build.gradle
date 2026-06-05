@@ -11,8 +11,8 @@ android {
         applicationId 'ru.adsrv.webdavtunnel'
         minSdk 24
         targetSdk 34
-        versionCode 3
-        versionName '1.1.1'
+        versionCode 4
+        versionName '1.1.2'
     }
 
     // Release signing is driven by env vars so the key never lives in the repo.
