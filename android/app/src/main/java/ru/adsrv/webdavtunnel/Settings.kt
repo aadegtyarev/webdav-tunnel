@@ -15,19 +15,18 @@ object Settings {
     fun tune(ctx: Context): SharedPreferences = ctx.getSharedPreferences("cfg", Context.MODE_PRIVATE)
     fun browser(ctx: Context): SharedPreferences = ctx.getSharedPreferences("browser", Context.MODE_PRIVATE)
 
-    // ── level 3: transport tuning (defaults mirror the fast profile) ───────────────
+    // ── level 3: transport tuning (defaults match Go tunnel defaults) ─────────────
     object Tune {
-        // gentle profile — backed off slightly from the aggressive one to ease Yandex 429s
         const val CHUNK = "chunk";        const val DEF_CHUNK = 131071
-        const val COALESCE = "coalesce";  const val DEF_COALESCE = 20      // ms (was 10): fewer, fuller writes
-        const val POLL_MIN = "poll_min";  const val DEF_POLL_MIN = 300     // ms (was 200)
-        const val POLL_MAX = "poll_max";  const val DEF_POLL_MAX = 1500    // ms (was 800): poll idle less often
-        const val PUTS = "puts";          const val DEF_PUTS = 6           // was 8
-        const val READ_MIN = "read_min";  const val DEF_READ_MIN = 2       // was 3
-        const val READ_MAX = "read_max";  const val DEF_READ_MAX = 6       // was 8
+        const val COALESCE = "coalesce";  const val DEF_COALESCE = 10      // ms
+        const val POLL_MIN = "poll_min";  const val DEF_POLL_MIN = 200     // ms
+        const val POLL_MAX = "poll_max";  const val DEF_POLL_MAX = 500     // ms
+        const val PUTS = "puts";          const val DEF_PUTS = 8
+        const val READ_MIN = "read_min";  const val DEF_READ_MIN = 3
+        const val READ_MAX = "read_max";  const val DEF_READ_MAX = 8
         const val DIAL = "dial_sec";      const val DEF_DIAL = 15          // s
         const val IDLE = "idle_sec";      const val DEF_IDLE = 90          // s
-        const val WATCHDOG = "watchdog";  const val DEF_WATCHDOG = 120     // s, page-load watchdog (UI); high so JS-heavy SPAs (GitHub) survive the multi-second/chunk tunnel RTT
+        const val WATCHDOG = "watchdog";  const val DEF_WATCHDOG = 120     // s
     }
 
     fun tuneInt(ctx: Context, key: String, def: Int): Int = tune(ctx).getInt(key, def)
